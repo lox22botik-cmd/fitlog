@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0e1014">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Жим 100</title>
+<title>Мой дневник</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -14,7 +14,7 @@
 </head>
 <body>
 <header class="top">
-  <h1 id="title">Жим 100</h1>
+  <h1 id="title">Сегодня</h1>
   <div id="topDetail" class="top-detail"></div>
 </header>
 <main id="view"></main>
@@ -28,12 +28,17 @@
 </div>
 <nav class="tabs">
   <a href="#home" data-tab="home"><span>🏠</span>Сегодня</a>
-  <a href="#history" data-tab="history"><span>📋</span>История</a>
-  <a href="#progress" data-tab="progress"><span>📈</span>Прогресс</a>
-  <a href="#body" data-tab="body"><span>⚖️</span>Вес</a>
+  <a href="#train" data-tab="train"><span>🏋️</span>Трен.</a>
+  <a href="#food" data-tab="food"><span>🍽️</span>Еда</a>
+  <a href="#stats" data-tab="stats"><span>📊</span>Итоги</a>
   <a href="#settings" data-tab="settings"><span>⚙️</span>Ещё</a>
 </nav>
 <script src="data.js"></script>
-<script src="app.js"></script>
+<script src="core.js"></script>
+<script src="train.js"></script>
+<script src="food.js"></script>
+<script src="day.js"></script>
+<script src="stats.js"></script>
+<script src="settings.js"></script>
 </body>
 </html>
