@@ -211,7 +211,7 @@ function entryCard(w, e, i) {
   const ex = exOf(e.ex), prev = history(e.ex, { before: w, deload: true })[0];
   const rep = e.rMin === e.rMax ? e.rMin : e.rMin + '–' + e.rMax;
   let h = '<section class="card ex"><div class="exhead"><div><div class="exname">' + esc(ex.name) + '</div><div class="muted">' +
-    e.sets.length + '×' + rep + (ex.perArm ? ' на руку' : '') + ' · отдых ' + fmtRest(e.restMin, e.restMax) + ' · ' + esc(ex.mg || '') + '</div></div>' +
+    e.sets.length + '×' + rep + (ex.perArm ? ' на руку' : '') + ' · отдых ' + fmtRest(e.restMin, e.restMax) + ' · ' + esc(ex.mg || '') + (typeof TECH_IDS !== 'undefined' && TECH_IDS.includes(e.ex) ? ' · <a class="tlink" href="tech.html#' + e.ex + '">▶ техника</a>' : '') + '</div></div>' +
     '<button class="icon" data-act="exMenu" data-w="' + w.id + '" data-i="' + i + '" aria-label="меню">⋯</button></div>';
   if (e.hint) h += '<div class="hint">→ ' + esc(e.hint) + '</div>';
   if (e.warm.length) {
@@ -384,6 +384,7 @@ Object.assign(ACT, {
       { label: 'Разминочный подход +', fn: () => { e.warm.push({ w: 20, r: 10, done: false }); save(); render(); } },
       { label: 'Выше', fn: () => { if (i > 0) { w.entries.splice(i - 1, 0, w.entries.splice(i, 1)[0]); save(); render(); } } },
       { label: 'Ниже', fn: () => { if (i < w.entries.length - 1) { w.entries.splice(i + 1, 0, w.entries.splice(i, 1)[0]); save(); render(); } } },
+      { label: '▶ Техника выполнения', fn: () => { location.href = 'tech.html#' + e.ex; } },
       { label: 'График этого упражнения', fn: () => { location.hash = '#ex/' + e.ex; } },
       { label: 'Убрать из этой тренировки', cls: 'danger', fn: () => { w.entries.splice(i, 1); save(); render(); } },
     ]);

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e1014">
+<title>Техника упражнений</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<style>
+  body { padding-bottom: 24px; }
+  .stage-card { padding: 8px; }
+  .stage { width: 100%; height: auto; display: block; background: #12151a; border-radius: 12px; }
+  .ph { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 10px 4px 2px; font-size: 18px; font-weight: 700; }
+  .ph .mono { font-size: 15px; color: var(--muted); font-weight: 500; }
+  .maps { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .bm { margin: 0; text-align: center; }
+  .bm svg { width: 100%; max-width: 170px; height: auto; }
+  .bm figcaption { color: var(--muted); font-size: 14px; }
+  .legend i { border-radius: 3px; }
+  .mlist { font-size: 16px; margin-top: 10px; line-height: 1.6; }
+  .tlist { margin: 8px 0 0; padding-left: 20px; font-size: 16px; line-height: 1.5; }
+  .tlist li { margin: 6px 0; }
+  .safety { border-color: #23573f; background: #10221a; }
+  .chips .chip { min-height: 40px; }
+  .exsel { margin: 0 0 12px; }
+  .back { display: inline-flex; margin: 0 0 10px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1 id="title">Техника</h1>
+  <div class="top-detail" id="topDetail"></div>
+</header>
+<main>
+  <a class="btn ghost small back" href="index.html#train">‹ в дневник</a>
+  <select id="exSel" class="sel exsel"></select>
+  <section class="card stage-card">
+    <svg class="stage" id="stage" viewBox="0 0 300 250" role="img" aria-label="анимация техники"></svg>
+    <div class="ph"><span id="phase">—</span><span class="mono" id="rep"></span></div>
+    <div class="grid3" style="margin:10px 0 0">
+      <button class="btn ghost" id="btnPause">⏸ пауза</button>
+      <button class="btn ghost" id="btnSlow">0,5×</button>
+      <button class="btn primary" id="btnNorm">1×</button>
+    </div>
+  </section>
+  <section class="card">
+    <div class="exname">Что работает</div>
+    <div class="maps" id="maps"></div>
+    <div class="legend"><span><i style="background:#ef4444"></i>основная мышца</span><span><i style="background:#f59e0b"></i>помогает</span></div>
+    <div class="mlist" id="mlist"></div>
+  </section>
+  <section class="card"><div class="exname">Как делать</div><ol class="tlist" id="cues"></ol></section>
+  <section class="card"><div class="exname">Частые ошибки</div><ul class="tlist" id="errs"></ul></section>
+  <section class="card safety"><div class="exname">Безопасность для глаз</div><ul class="tlist" id="safe"></ul>
+    <div class="muted small-note" style="margin:8px 0 0">Подход «без отказа и без натуживания» — общие правила при проблемах с сетчаткой. Уточни у своего офтальмолога, какие упражнения тебе можно.</div></section>
+</main>
+<script src="data.js"></script>
+<script src="tech-data.js"></script>
+<script src="tech.js"></script>
+<script>
+  // Имена упражнений: из сохранённого дневника (если переименовывал), иначе стандартные
+  let names = {};
+  try { const s = JSON.parse(localStorage.getItem('fitlog-v1')); if (s && s.exercises) for (const k in s.exercises) names[k] = s.exercises[k].name; } catch (e) { }
+  const nameOf = id => names[id] || (DEFAULT_EXERCISES[id] || {}).name || id;
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const sel = document.getElementById('exSel');
+  const groups = DEFAULT_PROGRAM.map(d => [d.title, d.items.map(i => i.ex)]);
+  groups.push(['Запасные', Object.keys(DEFAULT_EXERCISES).filter(id => DEFAULT_EXERCISES[id].spare)]);
+  sel.innerHTML = groups.map(([t, ids]) => '<optgroup label="' + esc(t) + '">' + ids.filter(id => TECH[id]).map(id => '<option value="' + id + '">' + esc(nameOf(id)) + '</option>').join('') + '</optgroup>').join('');
+  sel.onchange = () => { location.hash = sel.value; };
+
+  let player = null, speed = 1;
+  function show() {
+    const id = TECH[location.hash.slice(1)] ? location.hash.slice(1) : 'bench', ex = TECH[id];
+    sel.value = id;
+    document.getElementById('title').textContent = 'Техника';
+    document.getElementById('topDetail').innerHTML = '<div class="td-row"><b>' + esc(nameOf(id)) + '</b></div><div class="td-sub muted mono">темп ' + ex.tempo[0] + '–' + ex.tempo[1] + '–' + ex.tempo[2] + ' с</div>';
+    if (player) player.stop();
+    player = techPlayer(document.getElementById('stage'), ex, (ph, rep) => {
+      document.getElementById('phase').textContent = ph;
+      document.getElementById('rep').textContent = 'повтор ' + rep + (ex.note ? ' · ' + ex.note : '');
+    });
+    player.setSpeed(speed);
+    document.getElementById('btnPause').textContent = '⏸ пауза';
+    document.getElementById('maps').innerHTML = bodyMap(ex, MAP_FRONT, 'спереди') + bodyMap(ex, MAP_BACK, 'сзади');
+    document.getElementById('mlist').innerHTML = '<b>Основные:</b> ' + ex.prim.map(m => MUSCLE_NAMES[m]).join(', ') +
+      (ex.sec.length ? '<br><b>Помогают:</b> ' + ex.sec.map(m => MUSCLE_NAMES[m]).join(', ') : '');
+    document.getElementById('cues').innerHTML = ex.cues.map(c => '<li>' + esc(c) + '</li>').join('');
+    document.getElementById('errs').innerHTML = ex.errors.map(c => '<li>' + esc(c) + '</li>').join('');
+    document.getElementById('safe').innerHTML = SAFETY.map(c => '<li>' + esc(c) + '</li>').join('');
+  }
+  document.getElementById('btnPause').onclick = e => { e.target.textContent = player.toggle() ? '▶ дальше' : '⏸ пауза'; };
+  const setSp = s => { speed = s; player.setSpeed(s); document.getElementById('btnSlow').className = 'btn ' + (s < 1 ? 'primary' : 'ghost'); document.getElementById('btnNorm').className = 'btn ' + (s === 1 ? 'primary' : 'ghost'); };
+  document.getElementById('btnSlow').onclick = () => setSp(0.5);
+  document.getElementById('btnNorm').onclick = () => setSp(1);
+  window.addEventListener('hashchange', () => { show(); scrollTo(0, 0); });
+  show();
+</script>
+</body>
+</html>

@@ -2,6 +2,8 @@
 // Ядро: хранение, форматирование, окна, графики, роутинг. Всё живёт в localStorage этого браузера.
 
 const KEY = 'fitlog-v1';
+// Упражнения, для которых есть анимация техники (tech.html)
+const TECH_IDS = ['bench','incline_bb','lat_raise','french_incline','pushdown','pullup','lat_wide','row_cable','db_row','rear_delt','incline_curl','hammer','bench_pause','db_press30','fly','leg_press','leg_curl','leg_ext','calf','close_grip','overhead_ext','lat_close_rev','shrug','preacher','bb_curl','cable_curl','cross_hammer'];
 const DAY = 864e5;
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));

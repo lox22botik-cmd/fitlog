@@ -253,3 +253,5 @@ a.tile { display: block; }
 .chart .bar { stroke: none; }
 .chart .lbl.ref { fill: var(--text2); font-weight: 500; }
 .tbl tr[data-act] { cursor: pointer; }
+
+.tlink { color: var(--accent); font-weight: 700; }
