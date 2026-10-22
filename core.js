@@ -65,6 +65,7 @@ function load() {
 let S = load();
 let saveWarned = false;
 function save() {
+  if (typeof sortedCache !== 'undefined') sortedCache = null;
   try { localStorage.setItem(KEY, JSON.stringify(S)); }
   catch (e) { if (!saveWarned) { saveWarned = true; alert('Не получилось сохранить данные: ' + e.message); } }
 }
@@ -248,6 +249,7 @@ const VIEWS = {}, ACT = {}, TAB_OF = {};
 function setTitle(t) { $('#title').textContent = t; }
 function route() { const [r, a, b] = (location.hash.slice(1) || 'home').split('/'); return { r, a, b }; }
 function render() {
+  if (typeof sortedCache !== 'undefined') sortedCache = null;
   const { r, a, b } = route();
   const tab = TAB_OF[r] || r;
   document.querySelectorAll('.tabs a').forEach(x => x.classList.toggle('on', x.dataset.tab === tab));

@@ -1,5 +1,5 @@
 // Офлайн-кэш. При изменении файлов приложения — поднять версию.
-const CACHE = 'fitlog-v4';
+const CACHE = 'fitlog-v5';
 const FILES = ['./', 'index.html', 'style.css', 'data.js', 'core.js', 'train.js', 'food.js', 'day.js', 'stats.js', 'settings.js', 'xlsx.js', 'tech.html', 'tech.js', 'tech-data.js', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'icon-512-maskable.png'];
 
 self.addEventListener('install', e => {

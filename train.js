@@ -20,7 +20,9 @@ function e1rm(e) {
 }
 const doneSets = w => w.entries.flatMap(e => e.sets.filter(s => s.done));
 const tonnage = w => sum(doneSets(w).map(s => s.w * s.r));
-function sortedWorkouts() { return S.workouts.slice().sort((a, b) => b.date.localeCompare(a.date) || b.started - a.started); }
+// Кэш сортировки: сбрасывается при каждом сохранении и отрисовке (save/render в core.js)
+let sortedCache = null;
+function sortedWorkouts() { return sortedCache || (sortedCache = S.workouts.slice().sort((a, b) => b.date.localeCompare(a.date) || b.started - a.started)); }
 // Прошлые выполнения упражнения, новые сначала. before — тренировка, раньше которой искать.
 function history(exId, opt = {}) {
   const out = [], cur = opt.before;

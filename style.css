@@ -16,7 +16,7 @@
   --danger: #ef5350;
   --s1: #e8650f;   /* рабочий вес — проверено валидатором на тёмном фоне */
   --s2: #3b8fe8;   /* расчётный 1ПМ */
-  --shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 8px 24px rgba(0,0,0,.28);
+  --shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 4px 12px rgba(0,0,0,.22);
   --ease: cubic-bezier(.2,.8,.2,1);
   --spring: cubic-bezier(.34,1.56,.64,1);
   --mono: 'Roboto Mono', 'JetBrains Mono', 'Droid Sans Mono', ui-monospace, monospace;
@@ -264,8 +264,10 @@ a.tile { display: block; }
 
 
 /* ================= v3: дизайн и анимации ================= */
-body { background: radial-gradient(120% 60% at 50% -10%, #1a1420 0%, var(--bg) 55%) fixed, var(--bg); -webkit-font-smoothing: antialiased; }
-.top { background: linear-gradient(180deg, rgba(11,13,18,.96) 70%, rgba(11,13,18,0)); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 16px 16px 12px; }
+body { background: var(--bg); -webkit-font-smoothing: antialiased; }
+/* мягкое свечение сверху — отдельным слоем, не перерисовывается при прокрутке */
+body::before { content: ''; position: fixed; inset: 0 0 auto 0; height: 60vh; background: radial-gradient(120% 100% at 50% -20%, #1a1420 0%, rgba(11,13,18,0) 70%); pointer-events: none; z-index: -1; }
+.top { background: linear-gradient(180deg, var(--bg) 75%, rgba(11,13,18,0)); padding: 16px 16px 12px; }
 .top h1 { font-size: 28px; letter-spacing: -.02em; background: linear-gradient(90deg, #fff, #c9cfda); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .td-bar { height: 6px; background: rgba(255,255,255,.08); }
 .td-bar i { background: var(--grad); transition: width .5s var(--ease); }
@@ -275,8 +277,7 @@ body { background: radial-gradient(120% 60% at 50% -10%, #1a1420 0%, var(--bg) 5
 a.card:active, label.card:active { transform: scale(.985); }
 .card.hero { border-color: rgba(255,122,47,.28); background: radial-gradient(120% 120% at 0% 0%, rgba(255,122,47,.16), rgba(255,79,94,.05) 45%, rgba(0,0,0,0) 70%), var(--surface); }
 .card.okc { border-color: rgba(63,207,142,.35); background: radial-gradient(120% 120% at 0% 0%, rgba(63,207,142,.12), rgba(0,0,0,0) 60%), var(--surface); }
-.card.due { border-color: var(--warn); animation: glow 2.2s ease-in-out infinite; }
-@keyframes glow { 50% { box-shadow: 0 0 0 4px rgba(245,184,67,.12), var(--shadow); } }
+.card.due { border-color: var(--warn); }
 .tile { border-radius: 16px; background: var(--surface); border-color: var(--line); box-shadow: var(--shadow); transition: transform .15s var(--ease); }
 a.tile:active, .tile-btn:active { transform: scale(.96); }
 .tile-btn { font: inherit; color: inherit; text-align: left; cursor: pointer; border: 1px dashed var(--line2); }
@@ -350,7 +351,7 @@ textarea:focus, .txt:focus, .sel:focus, .field input:focus { outline: none; bord
 .train-links .btn { font-size: 15px; }
 
 /* нижние вкладки */
-.tabs { background: rgba(14,16,22,.82); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); border-top: 1px solid var(--line); padding: 6px 6px env(safe-area-inset-bottom); }
+.tabs { background: #0e1016; border-top: 1px solid var(--line); padding: 6px 6px env(safe-area-inset-bottom); }
 .tabs a { position: relative; padding: 6px 0 8px; font-weight: 600; transition: color .2s; }
 .tabs a span { filter: none; opacity: 1; display: grid; place-items: center; width: 52px; height: 30px; border-radius: 99px; transition: background .25s var(--ease), transform .25s var(--spring); }
 .tabs a span svg { width: 22px; height: 22px; }
@@ -358,12 +359,12 @@ textarea:focus, .txt:focus, .sel:focus, .field input:focus { outline: none; bord
 .tabs a:active span { transform: scale(.9); }
 
 /* таймер */
-.timer { border-radius: 22px; background: rgba(36,26,18,.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-color: rgba(255,122,47,.6); animation: slideUp .35s var(--ease); }
-.timer.over { background: rgba(16,41,28,.92); border-color: var(--ok); }
+.timer { border-radius: 22px; background: #241a12; border-color: rgba(255,122,47,.6); animation: slideUp .35s var(--ease); }
+.timer.over { background: #10291c; border-color: var(--ok); }
 .tbtn { border-radius: 14px; }
 
 /* окна */
-.sheet-bg { background: rgba(4,5,8,.55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: fadeIn .2s ease; }
+.sheet-bg { background: rgba(4,5,8,.66); animation: fadeIn .2s ease; }
 .sheet { border-radius: 26px 26px 0 0; border: 1px solid var(--line); border-bottom: 0; animation: slideUp .32s var(--ease); box-shadow: 0 -10px 40px rgba(0,0,0,.4); }
 .sheet-bg.out { animation: fadeOut .18s ease forwards; }
 .sheet-bg.out .sheet { animation: slideDown .18s ease forwards; }
@@ -372,7 +373,7 @@ textarea:focus, .txt:focus, .sel:focus, .field input:focus { outline: none; bord
 .sheet-o:active { background: rgba(255,255,255,.05); }
 .sheet-o.primary-o { background: var(--grad); color: #fff; }
 .sheet-search { margin: 0 0 8px; }
-.toast { border-radius: 14px; background: rgba(30,35,46,.95); backdrop-filter: blur(10px); animation: toastIn .3s var(--spring); }
+.toast { border-radius: 14px; background: #1e232e; animation: toastIn .3s var(--spring); }
 .toast.out { animation: toastOut .25s ease forwards; }
 @keyframes fadeIn { from { opacity: 0; } }
 @keyframes fadeOut { to { opacity: 0; } }
@@ -382,13 +383,13 @@ textarea:focus, .txt:focus, .sel:focus, .field input:focus { outline: none; bord
 @keyframes toastOut { to { opacity: 0; transform: translate(-50%, -10px); } }
 
 /* появление экрана: блоки выезжают по очереди */
-#view.enter > * { animation: rise .45s var(--ease) both; }
+#view.enter > * { animation: rise .35s var(--ease) both; }
 #view.enter > *:nth-child(2) { animation-delay: .03s; }
 #view.enter > *:nth-child(3) { animation-delay: .06s; }
 #view.enter > *:nth-child(4) { animation-delay: .09s; }
 #view.enter > *:nth-child(5) { animation-delay: .12s; }
 #view.enter > *:nth-child(6) { animation-delay: .15s; }
-#view.enter > *:nth-child(n+7) { animation-delay: .18s; }
+#view.enter > *:nth-child(n+7) { animation: none; }
 #view.enter .meter-bar i { animation: grow .7s var(--ease) both .15s; transform-origin: left; }
 @keyframes rise { from { opacity: 0; transform: translateY(12px); } }
 @keyframes grow { from { transform: scaleX(0); } }
