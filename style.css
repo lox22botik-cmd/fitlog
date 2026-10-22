@@ -16,7 +16,7 @@
   --danger: #ef5350;
   --s1: #e8650f;   /* рабочий вес — проверено валидатором на тёмном фоне */
   --s2: #3b8fe8;   /* расчётный 1ПМ */
-  --shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 4px 12px rgba(0,0,0,.22);
+  --shadow: none;
   --ease: cubic-bezier(.2,.8,.2,1);
   --spring: cubic-bezier(.34,1.56,.64,1);
   --mono: 'Roboto Mono', 'JetBrains Mono', 'Droid Sans Mono', ui-monospace, monospace;
@@ -265,20 +265,18 @@ a.tile { display: block; }
 
 /* ================= v3: дизайн и анимации ================= */
 body { background: var(--bg); -webkit-font-smoothing: antialiased; }
-/* мягкое свечение сверху — отдельным слоем, не перерисовывается при прокрутке */
-body::before { content: ''; position: fixed; inset: 0 0 auto 0; height: 60vh; background: radial-gradient(120% 100% at 50% -20%, #1a1420 0%, rgba(11,13,18,0) 70%); pointer-events: none; z-index: -1; }
-.top { background: linear-gradient(180deg, var(--bg) 75%, rgba(11,13,18,0)); padding: 16px 16px 12px; }
-.top h1 { font-size: 28px; letter-spacing: -.02em; background: linear-gradient(90deg, #fff, #c9cfda); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.top { background: var(--bg); padding: 16px 16px 10px; }
+.top h1 { font-size: 28px; letter-spacing: -.02em; }
 .td-bar { height: 6px; background: rgba(255,255,255,.08); }
 .td-bar i { background: var(--grad); transition: width .5s var(--ease); }
 
 /* карточки */
-.card { border-radius: 20px; padding: 16px 14px; border: 1px solid var(--line); background: linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,0)) , var(--surface); box-shadow: var(--shadow); transition: transform .2s var(--ease), border-color .2s, background .2s; }
+.card { border-radius: 20px; padding: 16px 14px; border: 1px solid var(--line); background: var(--surface); transition: transform .2s var(--ease); }
 a.card:active, label.card:active { transform: scale(.985); }
-.card.hero { border-color: rgba(255,122,47,.28); background: radial-gradient(120% 120% at 0% 0%, rgba(255,122,47,.16), rgba(255,79,94,.05) 45%, rgba(0,0,0,0) 70%), var(--surface); }
-.card.okc { border-color: rgba(63,207,142,.35); background: radial-gradient(120% 120% at 0% 0%, rgba(63,207,142,.12), rgba(0,0,0,0) 60%), var(--surface); }
+.card.hero { border-color: rgba(255,122,47,.35); background: #1f1a1a; }
+.card.okc { border-color: rgba(63,207,142,.4); background: #14201c; }
 .card.due { border-color: var(--warn); }
-.tile { border-radius: 16px; background: var(--surface); border-color: var(--line); box-shadow: var(--shadow); transition: transform .15s var(--ease); }
+.tile { border-radius: 16px; background: var(--surface); border-color: var(--line); transition: transform .15s var(--ease); }
 a.tile:active, .tile-btn:active { transform: scale(.96); }
 .tile-btn { font: inherit; color: inherit; text-align: left; cursor: pointer; border: 1px dashed var(--line2); }
 .tile-btn .big { color: var(--accent); }
@@ -288,7 +286,7 @@ a.tile:active, .tile-btn:active { transform: scale(.96); }
 /* кнопки */
 .btn { border-radius: 16px; border-color: var(--line2); background: var(--surface2); transition: transform .14s var(--ease), background .2s, border-color .2s, box-shadow .2s, opacity .2s; position: relative; overflow: hidden; }
 .btn.ghost { background: rgba(255,255,255,.03); }
-.btn.primary { background: var(--grad); border: 0; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.2); box-shadow: 0 6px 20px rgba(255,100,50,.32), 0 1px 0 rgba(255,255,255,.25) inset; }
+.btn.primary { background: var(--grad); border: 0; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.2); }
 .btn.danger { border-color: rgba(239,83,80,.3); background: rgba(239,83,80,.05); }
 .btn:active, .chip:active, .rating button:active, .check:active, .stepper button:active, .sheet-o:active, .row-line:active, .food-row:active, .wd:active { transform: scale(.95); }
 .btn.okb { background: rgba(63,207,142,.14); border-color: rgba(63,207,142,.6); color: #c6f5de; }
@@ -298,9 +296,9 @@ a.tile:active, .tile-btn:active { transform: scale(.96); }
 .chip { border-color: var(--line2); background: rgba(255,255,255,.04); transition: transform .14s var(--ease), background .2s; }
 .chip.on { background: var(--grad); color: #fff; border: 0; }
 .rating button { border-radius: 14px; border-color: var(--line2); background: rgba(255,255,255,.03); transition: transform .14s var(--ease), background .2s, color .2s; }
-.rating button.on { background: var(--grad); color: #fff; border-color: transparent; box-shadow: 0 4px 14px rgba(255,100,50,.3); }
+.rating button.on { background: var(--grad); color: #fff; border-color: transparent; }
 .check { border-radius: 14px; border-color: var(--line2); transition: transform .14s var(--ease), background .2s, border-color .2s; }
-.check.on { background: var(--ok); border-color: var(--ok); color: #06200f; box-shadow: 0 4px 14px rgba(63,207,142,.35); }
+.check.on { background: var(--ok); border-color: var(--ok); color: #06200f; }
 .stepper { border-radius: 14px; border-color: var(--line2); }
 .set { transition: opacity .2s; }
 .set.done .stepper { border-color: rgba(63,207,142,.4); }
@@ -334,7 +332,7 @@ textarea:focus, .txt:focus, .sel:focus, .field input:focus { outline: none; bord
 .wd b { font-size: 18px; }
 .wd.today { border-color: var(--line2); }
 .wd.today .wd-n { color: var(--accent); font-weight: 700; }
-.wd.on { background: var(--grad); border-color: transparent; box-shadow: 0 6px 16px rgba(255,100,50,.3); }
+.wd.on { background: var(--grad); border-color: transparent; }
 .wd.on .wd-n, .wd.on b { color: #fff; }
 .wd-dots { display: flex; gap: 3px; height: 8px; align-items: center; }
 .fd { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.12); }
@@ -365,7 +363,7 @@ textarea:focus, .txt:focus, .sel:focus, .field input:focus { outline: none; bord
 
 /* окна */
 .sheet-bg { background: rgba(4,5,8,.66); animation: fadeIn .2s ease; }
-.sheet { border-radius: 26px 26px 0 0; border: 1px solid var(--line); border-bottom: 0; animation: slideUp .32s var(--ease); box-shadow: 0 -10px 40px rgba(0,0,0,.4); }
+.sheet { border-radius: 26px 26px 0 0; border: 1px solid var(--line); border-bottom: 0; animation: slideUp .32s var(--ease); }
 .sheet-bg.out { animation: fadeOut .18s ease forwards; }
 .sheet-bg.out .sheet { animation: slideDown .18s ease forwards; }
 .sheet-grip { width: 40px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.18); margin: 2px auto 0; }
