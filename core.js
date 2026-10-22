@@ -82,21 +82,28 @@ function calcTargets(s = S) {
 }
 
 // ---------- окна, тосты, ввод ----------
+function closeSheet(o) { o.classList.add('out'); setTimeout(() => o.remove(), 180); }
 function toast(msg) {
   document.querySelectorAll('.toast').forEach(t => t.remove());
   const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
-  document.body.appendChild(t); setTimeout(() => t.remove(), 2400);
+  document.body.appendChild(t); setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 250); }, 2400);
 }
-function sheet(title, opts, html) {
+// search: true — поле поиска сверху, фильтрует варианты по тексту
+function sheet(title, opts, html, search) {
   const o = document.createElement('div'); o.className = 'sheet-bg';
-  o.innerHTML = '<div class="sheet"><div class="sheet-t">' + esc(title) + '</div>' + (html || '') +
+  o.innerHTML = '<div class="sheet"><div class="sheet-grip"></div><div class="sheet-t">' + esc(title) + '</div>' + (html || '') +
+    (search ? '<input class="txt sheet-search" type="search" placeholder="Поиск…">' : '') +
     opts.map((x, k) => '<button class="sheet-o ' + (x.cls || '') + '" data-k="' + k + '">' + (x.html || esc(x.label)) + '</button>').join('') +
     '<button class="sheet-o cancel" data-k="-1">Закрыть</button></div>';
   o.addEventListener('click', ev => {
     const b = ev.target.closest('[data-k]');
     if (ev.target !== o && !b) return;
-    o.remove();
+    closeSheet(o);
     if (b && +b.dataset.k >= 0) opts[+b.dataset.k].fn();
+  });
+  if (search) o.querySelector('.sheet-search').addEventListener('input', ev => {
+    const q = ev.target.value.trim().toLowerCase();
+    o.querySelectorAll('.sheet-o:not(.cancel)').forEach(el => { el.hidden = !!q && !el.textContent.toLowerCase().includes(q); });
   });
   document.body.appendChild(o);
   return o;
@@ -247,19 +254,36 @@ function render() {
   (VIEWS[r] || VIEWS.home)($('#view'), a, b);
   topDetail(); if (typeof syncWake === 'function') syncWake();
 }
-window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
+// Анимация появления экрана — только при переходе, не при каждой перерисовке
+let enterT = 0;
+window.addEventListener('hashchange', () => {
+  const v = $('#view'); v.classList.remove('enter'); render(); window.scrollTo(0, 0);
+  void v.offsetWidth; v.classList.add('enter'); clearTimeout(enterT); enterT = setTimeout(() => v.classList.remove('enter'), 700);
+});
 document.addEventListener('click', ev => {
   if (typeof unlockAudio === 'function') unlockAudio();
   const b = ev.target.closest('[data-act]'); if (!b) return;
   const fn = ACT[b.dataset.act]; if (!fn) return;
+  const sel = [...b.attributes].filter(a => a.name.startsWith('data-')).map(a => '[' + a.name + '="' + CSS.escape(a.value) + '"]').join('');
   if (fn(b.dataset, b) === false) return;
   save(); render();
+  // после перерисовки «щёлкаем» ту же кнопку — видно, что нажатие сработало
+  const nb = sel && document.querySelector(sel); if (nb) nb.classList.add('pop');
 });
+$('#view').classList.add('enter'); setTimeout(() => $('#view').classList.remove('enter'), 700);
 
 // Деталь в шапке: белок и калории за сегодня
 function foodTotals(date) {
   const list = S.food[date] || [];
   return { kcal: sum(list.map(x => x.kcal || 0)), p: sum(list.map(x => x.p || 0)), f: sum(list.map(x => x.f || 0)), c: sum(list.map(x => x.c || 0)), n: list.length };
+}
+// Цвет дня по еде: ok — норма, mid — недобор, bad — сильный перебор, '' — нет записей
+function dayStatus(date) {
+  const t = foodTotals(date), T = S.targets;
+  if (!t.n) return '';
+  const r = t.kcal / T.kcal;
+  if (r > 1.2) return 'bad';
+  return r >= 0.9 && t.p >= T.p * 0.9 ? 'ok' : 'mid';
 }
 function topDetail() {
   const t = foodTotals(todayStr()), T = S.targets;

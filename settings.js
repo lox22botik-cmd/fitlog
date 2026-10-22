@@ -19,6 +19,8 @@ VIEWS.settings = function (v) {
     (perm === 'default' ? '<button class="btn ghost wide" data-act="notifPerm">Разрешить уведомления</button>' : '') + '</section>' +
     '<section class="card"><div class="exname">Цикл разгрузки</div><div class="muted">Каждая 6-я неделя — лёгкая (−30%). Сейчас: ' +
     (wn >= 0 ? 'неделя ' + (wn % 6 + 1) + ' из 6' : 'цикл ещё не начался') + '.</div><label class="field">Начало цикла (понедельник)<input type="date" id="cycleStart" value="' + st.cycleStart + '"></label></section>' +
+    '<section class="card hero"><div class="exname">📊 Таблица Excel</div><div class="muted">Все данные одним файлом: дни, еда, тренировки по подходам, вес, замеры, нормы. Открывается в Excel и Google Таблицах, можно отправить ИИ на разбор.</div>' +
+    '<div class="grid2"><button class="btn primary" data-act="exportXlsx">Скачать</button>' + (canShareFiles() ? '<button class="btn ghost" data-act="shareXlsx">Отправить…</button>' : '<span></span>') + '</div></section>' +
     '<section class="card"><div class="exname">Резервная копия</div><div class="muted">Всё хранится только в этом браузере на телефоне. Делай копию раз в пару недель и кидай себе в Telegram.</div>' +
     '<div class="grid2"><button class="btn primary" data-act="export">Экспорт JSON</button><button class="btn ghost" data-act="import">Импорт</button></div>' +
     '<input type="file" id="importFile" accept="application/json,.json" hidden></section>' +
@@ -46,6 +48,8 @@ Object.assign(ACT, {
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
     return false;
   },
+  exportXlsx() { exportXlsx(); return false; },
+  shareXlsx() { shareXlsx(); return false; },
   import() { $('#importFile').click(); return false; },
   wipe() {
     if (!confirm('Стереть ВСЕ тренировки, еду, вес и настройки? Сначала сделай экспорт!')) return false;

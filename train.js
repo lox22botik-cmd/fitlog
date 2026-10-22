@@ -258,7 +258,7 @@ VIEWS.train = function (v) {
   if (act) h += '<a class="card hero row-card" href="#w/' + act.id + '"><div><div class="muted">Идёт · ' + fmtDate(act.date) + '</div><div class="big">' + esc(act.title) + '</div></div><div class="big">›</div></a>';
   h += '<div class="grid2"><button class="btn primary" data-act="startMenu">Начать тренировку</button><button class="btn ghost" data-act="pastWorkout">Записать прошедшую</button></div>';
   if (nd) h += planCard(nd, false);
-  h += '<div class="grid2"><a class="btn ghost" href="#program">Программа</a><a class="btn ghost" href="#ex/bench">Прогресс упражнений</a></div>';
+  h += '<div class="grid3 train-links"><a class="btn ghost" href="#program">Программа</a><a class="btn ghost" href="#exlib">Упражнения</a><a class="btn ghost" href="#ex/bench">Прогресс</a></div>';
   const list = sortedWorkouts();
   h += '<div class="sec-t">История</div>';
   if (!list.length) h += '<div class="empty">Пока пусто. Начни тренировку или запиши прошедшую.</div>';
@@ -303,8 +303,9 @@ VIEWS.ex = function (v, exArg) {
 TAB_OF.ex = 'stats';
 
 // ---------- программа ----------
+const visibleEx = () => Object.keys(S.exercises).filter(id => !S.exercises[id].hidden);
 function exOptions(sel) {
-  return Object.keys(S.exercises).sort((a, b) => (!!exOf(a).spare - !!exOf(b).spare) || exOf(a).name.localeCompare(exOf(b).name, 'ru'))
+  return Object.keys(S.exercises).filter(id => !S.exercises[id].hidden || id === sel).sort((a, b) => (!!exOf(a).spare - !!exOf(b).spare) || exOf(a).name.localeCompare(exOf(b).name, 'ru'))
     .map(id => '<option value="' + id + '"' + (id === sel ? ' selected' : '') + '>' + esc(exOf(id).name) + (exOf(id).spare ? ' (запасное)' : '') + '</option>').join('');
 }
 VIEWS.program = function (v) {
@@ -325,20 +326,53 @@ VIEWS.program = function (v) {
     });
     h += '<button class="btn ghost wide" data-act="pAdd" data-p="' + di + '">+ упражнение</button></section>';
   });
-  h += '<section class="card"><div class="exname">Библиотека упражнений</div><div class="muted">Своё упражнение — появится в выборе везде.</div>' +
-    '<button class="btn primary wide" data-act="libAdd">+ своё упражнение</button>' +
-    Object.keys(S.exercises).filter(id => S.exercises[id].custom).map(id => '<div class="row-line"><span>' + esc(exOf(id).name) + ' <span class="muted">· ' + esc(exOf(id).mg) + '</span></span><button class="icon" data-act="libDel" data-id="' + id + '">✕</button></div>').join('') +
-    '</section><button class="btn danger wide" data-act="resetProgram">Вернуть программу по умолчанию</button>';
+  h += '<a class="card row-card" href="#exlib"><div><div class="exname">Мои упражнения</div><div class="muted">добавить новое, переименовать, удалить</div></div><div class="big">›</div></a>' +
+    '<button class="btn danger wide" data-act="resetProgram">Вернуть программу по умолчанию</button>';
   v.innerHTML = h;
 };
 TAB_OF.program = 'train';
 
+// ---------- библиотека упражнений ----------
+VIEWS.exlib = function (v) {
+  setTitle('Упражнения');
+  const inProg = id => S.program.some(p => p.items.some(i => i.ex === id));
+  const ids = visibleEx(), hidden = Object.keys(S.exercises).filter(id => S.exercises[id].hidden);
+  let h = '<button class="btn primary wide" data-act="libAdd">+ новое упражнение</button>' +
+    '<div class="muted small-note">Нажми на упражнение, чтобы переименовать или удалить. История тренировок при удалении не пропадает.</div>';
+  for (const mg of MUSCLES) {
+    const list = ids.filter(id => (exOf(id).mg || 'другое') === mg).sort((a, b) => exOf(a).name.localeCompare(exOf(b).name, 'ru'));
+    if (!list.length) continue;
+    h += '<div class="sec-t">' + esc(mg) + ' · ' + list.length + '</div><section class="card list-card">' + list.map(id =>
+      '<button class="row-line big-line" data-act="libEdit" data-id="' + id + '"><span class="grow">' + esc(exOf(id).name) +
+      (inProg(id) ? ' <span class="pill ok">в программе</span>' : '') + (exOf(id).custom ? ' <span class="pill">моё</span>' : '') + '</span><span class="muted">›</span></button>').join('') + '</section>';
+  }
+  if (hidden.length) h += '<div class="sec-t">Удалённые · можно вернуть</div><section class="card list-card">' + hidden.map(id =>
+    '<button class="row-line big-line" data-act="libRestore" data-id="' + id + '"><span class="grow muted">' + esc(exOf(id).name) + '</span><span class="linkbtn">вернуть</span></button>').join('') + '</section>';
+  v.innerHTML = h;
+};
+TAB_OF.exlib = 'train';
+function exForm(title, ex, onSave, extra) {
+  formSheet(title, [
+    { k: 'name', label: 'Название', value: ex.name || '' },
+    { k: 'type', label: 'Тип', type: 'select', value: ex.type || 'machine', options: [['barbell', 'штанга (шаг 2,5)'], ['dumbbell', 'гантели (шаг 1)'], ['machine', 'блок / тренажёр (шаг 2,5)'], ['bodyweight', 'свой вес (+доп. вес)']] },
+    { k: 'mg', label: 'Мышцы', type: 'select', value: ex.mg || 'другое', options: MUSCLES.map(m => [m, m]) }],
+    o => { if (!o.name.trim()) { toast('Впиши название'); return; } onSave({ name: o.name.trim(), type: o.type, mg: o.mg }); }, extra);
+}
+
 // ---------- действия ----------
 const getW = id => S.workouts.find(x => x.id === id);
 function pickExercise(title, fn) {
-  const ids = Object.keys(S.exercises).sort((a, b) =>
+  const ids = visibleEx().sort((a, b) =>
     (!!exOf(a).spare - !!exOf(b).spare) || exOf(a).name.localeCompare(exOf(b).name, 'ru'));
-  sheet(title, ids.map(id => ({ html: esc(exOf(id).name) + ' <span class="muted">· ' + esc(exOf(id).mg || '') + (exOf(id).spare ? ', запасное' : '') + '</span>', fn: () => fn(id) })));
+  sheet(title, [{ html: '<b class="acc">+ Новое упражнение</b>', fn: () => newExercise(fn) }].concat(
+    ids.map(id => ({ html: esc(exOf(id).name) + ' <span class="muted">· ' + esc(exOf(id).mg || '') + (exOf(id).spare ? ', запасное' : '') + '</span>', fn: () => fn(id) }))), '', true);
+}
+// Создать упражнение; then(id) — что сделать с ним сразу (например, добавить в тренировку)
+function newExercise(then) {
+  exForm('Новое упражнение', {}, o => {
+    const id = 'my_' + uid(); S.exercises[id] = Object.assign(o, { custom: true }); toast('Добавлено: ' + o.name);
+    if (then) then(id);
+  });
 }
 function setWeight(d, val) {
   const e = getW(d.w).entries[d.i], arr = e[d.k], s = arr[d.j], old = s.w;
@@ -416,20 +450,22 @@ Object.assign(ACT, {
   pMove(d) { const items = S.program[d.p].items, i = +d.ii, j = i + +d.d; if (j >= 0 && j < items.length) items.splice(j, 0, items.splice(i, 1)[0]); },
   pDel(d) { const it = S.program[d.p].items[d.ii]; if (!confirm('Убрать «' + exOf(it.ex).name + '» из программы?')) return false; S.program[d.p].items.splice(d.ii, 1); },
   pAdd(d) { pickExercise('Добавить в программу', id => { S.program[d.p].items.push(freeItem(id)); save(); render(); }); return false; },
-  libAdd() {
-    formSheet('Своё упражнение', [
-      { k: 'name', label: 'Название', value: '' },
-      { k: 'type', label: 'Тип', type: 'select', value: 'machine', options: [['barbell', 'штанга (шаг 2,5)'], ['dumbbell', 'гантели (шаг 1)'], ['machine', 'блок / тренажёр (шаг 2,5)'], ['bodyweight', 'свой вес (+доп. вес)']] },
-      { k: 'mg', label: 'Мышцы', type: 'select', value: 'другое', options: MUSCLES.map(m => [m, m]) }],
-      o => { if (!o.name.trim()) return; S.exercises['my_' + uid()] = { name: o.name.trim(), type: o.type, mg: o.mg, custom: true }; toast('Добавлено: ' + o.name.trim()); });
+  libAdd() { newExercise(); return false; },
+  libEdit(d) {
+    const ex = S.exercises[d.id];
+    exForm(ex.name, ex, o => Object.assign(ex, o), [{ label: 'Удалить упражнение', cls: 'danger', fn: () => { if (libDelete(d.id)) { save(); render(); } } }]);
     return false;
   },
-  libDel(d) {
-    const used = S.workouts.some(w => w.entries.some(e => e.ex === d.id)) || S.program.some(p => p.items.some(i => i.ex === d.id));
-    if (used) { toast('Упражнение уже есть в тренировках или программе'); return false; }
-    delete S.exercises[d.id];
-  },
+  libRestore(d) { delete S.exercises[d.id].hidden; toast('Вернул: ' + exOf(d.id).name); },
 });
+// Удаление: убираем из программы; если по упражнению есть история или оно встроенное — прячем (иначе вернётся при обновлении), своё без истории — стираем
+function libDelete(id) {
+  const ex = S.exercises[id], used = S.workouts.some(w => w.entries.some(e => e.ex === id)), inProg = S.program.some(p => p.items.some(i => i.ex === id));
+  if (!confirm('Удалить «' + ex.name + '»?' + (inProg ? ' Оно уберётся и из программы.' : '') + (used ? ' Прошлые тренировки с ним останутся.' : ''))) return false;
+  S.program.forEach(p => { p.items = p.items.filter(i => i.ex !== id); });
+  if (ex.custom && !used) delete S.exercises[id]; else ex.hidden = true;
+  toast('Удалено: ' + ex.name); return true;
+}
 document.addEventListener('input', ev => {
   if (ev.target.id === 'note') { const w = getW(ev.target.dataset.w); if (w) { w.note = ev.target.value; save(); } }
 });

@@ -24,12 +24,28 @@ function sleepBlock(date) {
     '<div class="sub">Качество сна</div>' + rating('dayRate', date, 'sleepQ', dayGet(date, 'sleepQ'), ['ужас', 'плохо', 'норм', 'хорошо', 'супер']) + '</section>';
 }
 
+// Лента последних 7 дней: нажми на день — откроется его дневник, можно заполнить задним числом
+function weekStrip(sel) {
+  const t = todayStr(), end = sel && sel < addDays(t, -6) ? addDays(sel, 3) : t, out = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = addDays(end, -i);
+    if (d > t) continue;
+    const tr = S.workouts.some(w => w.date === d && doneSets(w).length), st = dayStatus(d), wd = WD[parseDate(d).getDay()];
+    out.push('<a class="wd ' + (d === sel ? 'on ' : '') + (d === t ? 'today' : '') + '" href="#day/' + d + '"><span class="wd-n">' + wd + '</span><b class="mono">' + parseDate(d).getDate() + '</b>' +
+      '<span class="wd-dots"><i class="fd ' + st + '"></i>' + (tr ? '<i class="fd tr"></i>' : '') + '</span></a>');
+  }
+  return '<section class="card strip-card"><div class="meal-h"><b>Дни</b><button class="linkbtn" data-act="pickDate" data-base="day" data-date="' + (sel || t) + '">📅 другой день</button></div>' +
+    '<div class="strip">' + out.join('') + '</div><div class="strip-leg muted"><span><i class="fd ok"></i>норма</span><span><i class="fd mid"></i>недобор</span><span><i class="fd bad"></i>перебор</span><span><i class="fd tr"></i>тренировка</span></div></section>';
+}
+
 VIEWS.home = function (v) {
   setTitle('Сегодня');
   const t = todayStr(), act = activeWorkout(), nd = nextDay(), T = S.targets, tot = foodTotals(t);
   let h = '';
   const ws = weekSummary(mondayOf(t));
   h += '<div class="say top-say">' + esc(ws.text) + '</div>';
+  h += weekStrip(t);
+  h += '<a class="btn ghost wide fill-day" href="#day/' + addDays(t, -1) + '">✎ Заполнить вчерашний день</a>';
   if (isDeload(t)) h += '<div class="banner deload"><b>Лёгкая неделя.</b> Веса −30%, без отказа — восстанавливаемся.</div>';
   if (act) h += '<a class="card hero row-card" href="#w/' + act.id + '"><div><div class="muted">Идёт тренировка · ' + fmtDate(act.date) + '</div><div class="big">' + esc(act.title) + '</div><div class="muted mono">' +
     doneSets(act).length + ' / ' + act.entries.flatMap(e => e.sets).length + ' подходов</div></div><div class="big">›</div></a>';
@@ -40,7 +56,7 @@ VIEWS.home = function (v) {
   h += '<a class="card" href="#food"><div class="meal-h"><b>Питание</b><span class="muted">открыть ›</span></div>' + meter('Калории', tot.kcal, T.kcal, 'ккал', 'kcal') + meter('Белки', tot.p, T.p, 'г', 'p') + '</a>' +
     '<div class="grid3">' + [10, 20, 30].map(g => '<button class="btn ghost" data-act="quickP" data-g="' + g + '" data-date="' + t + '">+' + g + ' г белка</button>').join('') + '</div>';
   h += waterBlock(t) + suppBlock(t) + sleepBlock(t);
-  h += '<section class="card"><div class="meal-h"><b>Энергия сегодня</b><a class="muted" href="#day/' + t + '">весь дневник ›</a></div>' + rating('dayRate', t, 'energy', dayGet(t, 'energy'), ['0', 'мало', 'норм', 'бодро', 'огонь']) + '</section>';
+  h += '<section class="card"><div class="meal-h"><b>Энергия сегодня</b><a class="linkbtn" href="#day/' + t + '">весь дневник ›</a></div>' + rating('dayRate', t, 'energy', dayGet(t, 'energy'), ['0', 'мало', 'норм', 'бодро', 'огонь']) + '</section>';
   const lb = lastBody();
   h += '<a class="card row-card" href="#body"><div><div class="exname">Вес тела</div><div class="muted">' + (lb ? (lb.date === t ? 'записан сегодня' : 'последний: ' + fmtDate(lb.date)) : 'ещё нет записей') + '</div></div><div class="big mono">' + (lb ? fmtW(lb.kg) : '—') + '</div></a>';
   const wn = weekNo(t);
@@ -52,9 +68,10 @@ VIEWS.day = function (v, dateArg) {
   setTitle('Дневник дня');
   const date = dateArg || todayStr(), r = S.days[date] || {}, tot = foodTotals(date);
   const ws = S.workouts.filter(w => w.date === date);
-  let h = dateNav('day', date);
+  let h = weekStrip(date) + dateNav('day', date);
   h += '<div class="tiles"><a class="tile" href="#food/' + date + '"><div class="muted">Еда</div><div class="big mono">' + Math.round(tot.kcal) + '</div><div class="muted mono">Б ' + Math.round(tot.p) + ' г</div></a>' +
-    '<div class="tile"><div class="muted">Тренировка</div><div class="big">' + (ws.length ? '✓' : '—') + '</div><div class="muted">' + (ws.length ? esc(ws[0].title) : 'нет') + '</div></div>' +
+    (ws.length ? '<a class="tile" href="#w/' + ws[0].id + '"><div class="muted">Тренировка</div><div class="big">✓</div><div class="muted">' + esc(ws[0].title) + '</div></a>'
+      : '<button class="tile tile-btn" data-act="dayWorkout" data-date="' + date + '"><div class="muted">Тренировка</div><div class="big">+</div><div class="muted">записать</div></button>') +
     '<div class="tile"><div class="muted">Вес</div><div class="big mono">' + ((S.body.find(b => b.date === date) || {}).kg != null ? fmtW(S.body.find(b => b.date === date).kg) : '—') + '</div></div></div>';
   h += sleepBlock(date) + waterBlock(date);
   h += '<section class="card"><div class="meal-h"><b>Шаги</b><span class="muted">норма ' + S.targets.steps.toLocaleString('ru') + '</span></div>' + meter('Шаги', r.steps || 0, S.targets.steps, '', 'steps') +
@@ -122,6 +139,7 @@ function measureForm(m, isNew) {
 }
 
 Object.assign(ACT, {
+  dayWorkout(d) { startMenu(d.date); return false; },
   supp(d) { const log = S.suppLog[d.date] = S.suppLog[d.date] || {}; log[d.n] = !log[d.n]; },
   water(d) { const r = dayRec(d.date); r.water = Math.max(0, (r.water || 0) + +d.d); },
   dayStep(d) {

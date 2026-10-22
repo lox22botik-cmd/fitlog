@@ -16,6 +16,17 @@ function recentFoods(n) {
   }
   return out;
 }
+// Всё, что когда-либо записывал: уникально по названию и граммам, частые сначала
+function allEaten() {
+  const m = new Map();
+  for (const d of Object.keys(S.food).sort()) for (const e of S.food[d]) {
+    if (e.name === 'Белок (быстро)') continue;
+    const key = e.name + '|' + (e.g || ''), x = m.get(key);
+    if (x) { x.n++; x.e = e; x.last = d; } else m.set(key, { key, e, n: 1, last: d });
+  }
+  return [...m.values()].sort((a, b) => b.n - a.n || b.last.localeCompare(a.last));
+}
+const eatenLabel = e => esc(e.name) + (e.g ? ' · ' + e.g + ' г' : '');
 const macroLine = e => '<span class="mono">' + Math.round(e.kcal) + ' ккал · Б ' + fmtW(r1(e.p)) + ' · Ж ' + fmtW(r1(e.f)) + ' · У ' + fmtW(r1(e.c)) + '</span>';
 
 function dateNav(base, date) {
@@ -35,8 +46,9 @@ VIEWS.food = function (v, dateArg) {
     '<div class="say">' + (tot.n === 0 ? 'Записей за этот день нет.' : left.length ? 'Осталось добрать: ' + left.join(' и ') + '.' : 'Норма по белку и калориям выполнена 💪') + '</div></section>';
   h += '<div class="sec-t">Быстро добавить белок</div><div class="grid3">' + [10, 20, 30].map(g => '<button class="btn ghost" data-act="quickP" data-g="' + g + '" data-date="' + date + '">+' + g + ' г</button>').join('') + '</div>';
   h += '<div class="grid2"><button class="btn primary" data-act="foodPick" data-date="' + date + '">+ из продуктов</button><button class="btn ghost" data-act="foodCustom" data-date="' + date + '">+ своя запись</button></div>';
-  const rec = recentFoods(8);
-  if (rec.length) h += '<div class="sec-t">Повторить</div><div class="chips">' + rec.map((e, k) => '<button class="chip" data-act="foodRepeat" data-k="' + k + '" data-date="' + date + '">' + esc(e.name) + (e.g ? ' · ' + e.g + ' г' : '') + '</button>').join('') + '</div>';
+  const all = allEaten();
+  if (all.length) h += '<div class="sec-t">Повторить · частые сначала</div><div class="chips">' + all.slice(0, 10).map(x => '<button class="chip" data-act="foodRepeat" data-key="' + esc(x.key) + '" data-date="' + date + '">' + eatenLabel(x.e) + '</button>').join('') +
+    (all.length > 10 ? '<button class="chip on" data-act="foodRepeatAll" data-date="' + date + '">все ' + all.length + ' ›</button>' : '') + '</div>';
   h += '<div class="sec-t">Съедено' + (list.length ? ' · ' + list.length + ' ' + plural(list.length, 'запись', 'записи', 'записей') : '') + '</div>';
   if (!list.length) h += '<div class="empty">Добавь еду кнопками выше. Можно и вечером одним списком — время поправишь.</div>';
   for (const [name, a, b] of MEALS) {
@@ -105,13 +117,18 @@ Object.assign(ACT, {
   foodPick(d) {
     const rec = recentFoods(30).map(e => e.fid).filter(Boolean);
     const ids = [...new Set(rec.concat(S.foods.map(f => f.id)))].filter(foodOf);
-    sheet('Продукт', ids.map(id => { const f = foodOf(id); return { html: '<b>' + esc(f.name) + '</b> <span class="muted mono">' + f.kcal + ' ккал · Б ' + fmtW(f.p) + '</span>', fn: () => gramsSheet(f, d.date) }; }));
+    sheet('Продукт', ids.map(id => { const f = foodOf(id); return { html: '<b>' + esc(f.name) + '</b> <span class="muted mono">' + f.kcal + ' ккал · Б ' + fmtW(f.p) + '</span>', fn: () => gramsSheet(f, d.date) }; }), '', true);
     return false;
   },
   foodCustom(d) { foodForm('Своя запись', {}, o => addFood(d.date, Object.assign({ id: uid(), g: null }, o))); return false; },
   foodRepeat(d) {
-    const e = recentFoods(8)[+d.k]; if (!e) return false;
-    addFood(d.date, Object.assign({}, e, { id: uid(), t: nowHM() })); toast('+ ' + e.name);
+    const x = allEaten().find(y => y.key === d.key); if (!x) return false;
+    addFood(d.date, Object.assign({}, x.e, { id: uid(), t: nowHM() })); toast('+ ' + x.e.name);
+  },
+  foodRepeatAll(d) {
+    sheet('Всё, что ты ел', allEaten().map(x => ({ html: '<b>' + eatenLabel(x.e) + '</b><br><span class="muted mono">' + Math.round(x.e.kcal) + ' ккал · Б ' + fmtW(r1(x.e.p)) + ' · ' + x.n + ' раз</span>',
+      fn: () => { addFood(d.date, Object.assign({}, x.e, { id: uid(), t: nowHM() })); save(); render(); toast('+ ' + x.e.name); } })), '', true);
+    return false;
   },
   foodMenu(d) {
     const e = findFood(d.date, d.id); if (!e) return false;
