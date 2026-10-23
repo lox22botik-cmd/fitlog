@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<title>Техника упражнений</title>
+<style>
+  :root {
+    --bg: #0b0d12; --surface: #151922; --surface2: #1e232e;
+    --line: rgba(255,255,255,.07); --line2: rgba(255,255,255,.12);
+    --text: #f2f4f8; --text2: #b9c0cc; --muted: #808a99;
+    --accent: #ff7a2f; --grad: linear-gradient(135deg, #ff9a3c 0%, #ff6a3d 55%, #ff4f5e 100%);
+    --ok: #3fcf8e; --danger: #ef5350;
+    --ease: cubic-bezier(.2,.8,.2,1);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { font: 16px/1.45 system-ui, -apple-system, Roboto, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; }
+  main { max-width: 1040px; margin: 0 auto; padding: 18px 16px 40px; }
+  h1 { font-size: 28px; margin: 4px 0 2px; letter-spacing: -.02em; }
+  .muted { color: var(--muted); }
+  .sec-t { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin: 22px 2px 10px; }
+  .sec-t::before { content: ''; display: inline-block; width: 3px; height: 11px; border-radius: 2px; background: var(--grad); margin-right: 8px; vertical-align: -1px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-top-color: rgba(255,255,255,.11); border-radius: 20px; padding: 16px; }
+
+  /* галерея */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .tile { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 8px; color: inherit; text-decoration: none; transition: transform .15s var(--ease), border-color .2s; }
+  .tile:active { transform: scale(.97); }
+  .tile.on { border-color: rgba(255,122,47,.7); }
+  .tile img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; border-radius: 10px; background: #eef0f3; }
+  .tile b { display: block; margin-top: 7px; font-size: 14px; line-height: 1.25; }
+  .tile span { font-size: 12px; color: var(--muted); }
+
+  /* сцена */
+  .stage-wrap { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (min-width: 860px) { .stage-wrap { grid-template-columns: 1.9fr 1fr; } }
+  .scene { position: relative; border-radius: 16px; overflow: hidden; aspect-ratio: 16 / 10; background: radial-gradient(110% 90% at 50% 40%, #ffffff 0%, #f1f2f4 55%, #e3e6ea 100%); touch-action: none; }
+  .scene canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+  .scene canvas:active { cursor: grabbing; }
+  .badge { position: absolute; background: rgba(11,13,18,.84); color: #fff; font-size: 13px; font-weight: 700; padding: 6px 11px; border-radius: 999px; pointer-events: none; }
+  .phase { left: 12px; top: 10px; }
+  .phase i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 7px; vertical-align: 0; }
+  .rep { right: 12px; top: 10px; color: var(--text2); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .cue { left: 12px; right: 12px; bottom: 10px; text-align: center; background: rgba(255,255,255,.9); color: #1f2430; border: 1px solid #e3e6ea; font-weight: 600; font-size: 14px; border-radius: 14px; }
+  .drag { right: 12px; top: 44px; background: rgba(255,255,255,.85); color: #6b7280; font-size: 11px; font-weight: 600; }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .chip { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line2); background: rgba(255,255,255,.04); color: var(--text); font: inherit; font-size: 14px; cursor: pointer; transition: transform .14s var(--ease), background .2s; }
+  .chip:active { transform: scale(.95); }
+  .chip.on { background: var(--grad); border-color: transparent; color: #fff; font-weight: 700; }
+  .ctl-t { width: 100%; font-size: 12px; color: var(--muted); margin: 6px 2px -2px; }
+
+  /* техника */
+  .steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+  .steps li { position: relative; padding: 10px 0 10px 40px; border-top: 1px solid var(--line); font-size: 15px; color: var(--text2); }
+  .steps li:first-child { border-top: 0; }
+  .steps li::before { counter-increment: s; content: counter(s); position: absolute; left: 0; top: 10px; width: 26px; height: 26px; border-radius: 50%; background: rgba(255,122,47,.14); color: var(--accent); font-weight: 800; font-size: 13px; display: grid; place-items: center; }
+  .steps b { color: var(--text); }
+  .errs { margin: 0; padding: 0; }
+  .errs li { padding: 8px 0 8px 26px; position: relative; border-top: 1px solid var(--line); color: var(--text2); font-size: 15px; list-style: none; }
+  .errs li:first-child { border-top: 0; }
+  .errs li::before { content: '✕'; position: absolute; left: 2px; color: var(--danger); font-weight: 800; }
+  .nums { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .num { background: var(--surface2); border-radius: 14px; padding: 10px 12px; }
+  .num b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; line-height: 1.25; }
+  .num span { font-size: 12px; color: var(--muted); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--text2); margin-top: 12px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .src { font-size: 13px; color: var(--muted); }
+  .src a { color: var(--text2); }
+  .err-box { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: #4b5563; font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Техника упражнений</h1>
+  <div class="muted">3D-модель двигается по технике. Красным — главные работающие мышцы, оранжевым — помогающие. Модель можно крутить пальцем.</div>
+
+  <div class="sec-t">Упражнения</div>
+  <div class="grid" id="grid"></div>
+
+  <div class="sec-t" id="exTitle">…</div>
+  <div class="stage-wrap">
+    <div class="card">
+      <div class="scene" id="scene">
+        <div class="badge phase" id="phase"><i></i>…</div>
+        <div class="badge rep" id="rep">повтор 1</div>
+        <div class="badge drag">⟲ потяни, чтобы повернуть</div>
+        <div class="badge cue" id="cue">…</div>
+      </div>
+      <div class="controls">
+        <button class="chip on" id="play">Пауза</button>
+        <button class="chip" data-speed="0.5">0,5×</button>
+        <button class="chip on" data-speed="1">1×</button>
+        <button class="chip on" id="pathBtn">Траектория</button>
+        <div class="ctl-t">Ракурс</div>
+        <button class="chip on" data-view="photo">3/4</button>
+        <button class="chip" data-view="side">Сбоку</button>
+        <button class="chip" data-view="front">Спереди</button>
+        <button class="chip" data-view="top">Сверху</button>
+        <button class="chip" data-view="close">Крупно</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec-t" style="margin-top:2px">Коротко</div>
+      <div class="nums" id="nums"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </div>
+
+  <div class="sec-t">Как делать</div>
+  <div class="card"><ol class="steps" id="steps"></ol></div>
+
+  <div class="sec-t">Частые ошибки</div>
+  <div class="card"><ul class="errs" id="errs"></ul></div>
+
+  <div class="sec-t">Источники</div>
+  <div class="card src" id="src"></div>
+</main>
+
+<script src="data.js"></script>
+<script src="tech-data.js"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { createStage, scene, M, EX3D, activate, highlight, frame, RIG, V, ease } from './gallery3d.js';
+
+// ---------- тексты ----------
+const BENCH_TEXT = {
+  steps: [
+    '<b>Глаза под грифом.</b> Ложись так, чтобы гриф на стойках был прямо над глазами: снимать удобно и гриф не цепляет стойки.',
+    '<b>Хват ≈1,5 ширины плеч, большой палец обхватывает гриф.</b> Гриф лежит в основании ладони, запястье прямое — не заваливай кисть назад.',
+    '<b>Лопатки сведи и опусти вниз</b> («в задние карманы») и держи так весь подход. Это платформа для жима и защита плеч.',
+    '<b>Прогиб — грудью вверх,</b> а не поясницей. Голова, верх спины и ягодицы всё время на скамье.',
+    '<b>Стопы плоско на полу,</b> шире таза, чуть позади коленей. Упирайся ногами в пол — давление идёт к голове, таз не отрывается.',
+    '<b>Сними гриф прямыми руками</b> и выведи его над плечами. Вдох, напряги живот.',
+    '<b>Опускай 1,5–2 с по диагонали</b> к низу груди — примерно на линию сосков или чуть ниже.',
+    '<b>Локти под 45–70° к корпусу,</b> не под 90°. Внизу предплечья вертикальны: запястье над локтем и сбоку, и спереди.',
+    '<b>Коснись груди без отбива,</b> сохраняя напряжение. Лопатки так и сведены.',
+    '<b>Жми ногами и руками вверх и назад</b> — гриф уходит к линии плеч по J-образной траектории. Выдох после самой тяжёлой точки, наверху руки прямые.',
+  ],
+  errors: ['Таз отрывается от скамьи — прогиб делается поясницей, а не грудью.', 'Отбив грифа от груди вместо касания.', 'Локти разведены под 90° — нагрузка уходит в плечевой сустав.',
+    'Запястья заваливаются назад, гриф лежит на пальцах.', 'Гриф опускается на шею или на живот.', 'Наверху плечи «уходят» вперёд со скамьи — лопатки потеряли сведение.', 'Ноги болтаются или стоят на носках без упора.'],
+  sources: [
+    ['FitnessVolt — Bench Press Technique Guide', 'https://fitnessvolt.com/powerlifting/guides/bench-press-technique-guide/'],
+    ['Barbell Logic — How To Bench Press: Setup, Safety, Bar Path', 'https://barbell-logic.com/how-to-bench-press-setup-safety-bar-path/'],
+    ['Barbell Logic — Finding the Touch Point', 'https://barbell-logic.com/finding-the-touch-point-for-your-bench-press/'],
+    ['Starting Strength — Critical Technique Elements: The Bench Press', 'https://startingstrength.com/article/critical-technique-elements-part-4-the-bench-press'],
+    ['EliteFTS — Big Bench Basics', 'https://www.elitefts.com/education/big-bench-basics'],
+    ['Power Athlete — J-curve or vertical bar path', 'https://powerathletehq.com/the-bench-press-j-curve-or-vertical-bar-path/'],
+  ],
+};
+const IDS = Object.keys(EX3D).filter(id => TECH[id]);
+const nameOf = id => (DEFAULT_EXERCISES[id] && DEFAULT_EXERCISES[id].name) || id;
+const mgOf = id => (DEFAULT_EXERCISES[id] && DEFAULT_EXERCISES[id].mg) || '';
+document.getElementById('grid').innerHTML = IDS.map(id => '<a class="tile" href="#' + id + '" data-id="' + id + '"><img alt="" data-thumb="' + id + '"><b>' + nameOf(id) + '</b><span>' + mgOf(id) + '</span></a>').join('');
+
+// ---------- сцена ----------
+const host = document.getElementById('scene');
+const { renderer, camera, controls } = createStage(host);
+function resize() { const w = host.clientWidth, h = host.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(host); resize();
+
+const pathLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineDashedMaterial({ color: 0xff6a3d, dashSize: 0.025, gapSize: 0.018, depthTest: false, transparent: true }));
+pathLine.renderOrder = 10; scene.add(pathLine);
+const pathDot = new THREE.Mesh(new THREE.SphereGeometry(0.014, 16, 12), new THREE.MeshBasicMaterial({ color: 0xff6a3d, depthTest: false }));
+pathDot.renderOrder = 11; scene.add(pathDot);
+
+let cur = null, center = V(), viewKey = 'photo', fly = null, trackLeg = false;
+function camFor(k, c, def) {
+  const st = def.standing;
+  return {
+    photo: c.clone().add(def.camPhoto || (st ? V(2.3, 0.45, -2.1) : V(1.8, 1.05, -2.0))),
+    side: c.clone().add(V(0, 0.15, 3.0)),
+    front: c.clone().add(V(3.0, 0.2, 0.001)),
+    top: c.clone().add(V(0, 3.3, 0.01)),
+    close: c.clone().add(st ? V(1.1, 0.25, -1.0) : V(0.8, 0.7, -0.9)),
+  }[k];
+}
+function setView(k, instant) {
+  viewKey = k; const def = EX3D[cur], pos = camFor(k, center, def);
+  if (instant) { camera.position.copy(pos); controls.target.copy(center); controls.update(); fly = null; return; }
+  fly = { from: camera.position.clone(), fromT: controls.target.clone(), to: pos, toT: center.clone(), t: 0 };
+}
+function sampleTrack(id) {
+  const def = EX3D[id], pts = [];
+  trackLeg = ['leg_press', 'leg_curl', 'leg_ext', 'calf'].includes(id);
+  for (let i = 0; i <= 40; i++) { frame(id, i / 40, 0); const p = (trackLeg ? RIG.J.A.L : RIG.J.W.L).clone(); p.z += trackLeg ? 0.12 : 0.08; pts.push(p); }
+  pathLine.geometry.setFromPoints(pts); pathLine.computeLineDistances();
+}
+
+const T = { tempo: [1, 0.3, 2, 0.3], phase: ['', ''] };
+let elapsed = 0, speed = 1, paused = false, last = performance.now(), lastPh = -1, lastRep = 0, ecc0 = false;
+function open(id) {
+  if (!EX3D[id] || !TECH[id]) id = 'bench';
+  cur = id; const t = TECH[id];
+  activate(id); highlight(t.prim || [], t.sec || []);
+  frame(id, 0.5, 0.5);
+  center = EX3D[id].view(); sampleTrack(id);
+  setView(viewKey, true);
+  elapsed = 0; lastPh = -1; lastRep = 0;
+  ecc0 = /^(опускай|медленно)/.test(t.phase[0]);
+  document.querySelectorAll('.tile').forEach(x => x.classList.toggle('on', x.dataset.id === id));
+  document.getElementById('exTitle').textContent = nameOf(id) + (t.note ? ' · ' + t.note : '');
+  const bench = id === 'bench' || id === 'bench_pause';
+  document.getElementById('steps').innerHTML = (bench ? BENCH_TEXT.steps : t.cues).map(s => '<li>' + s + '</li>').join('');
+  document.getElementById('errs').innerHTML = (bench ? BENCH_TEXT.errors.concat(t.errors.filter(e => !/отбив|таз/i.test(e))) : t.errors).map(s => '<li>' + s + '</li>').join('');
+  const [a, h1, b, h2] = t.tempo, mn = l => l.map(m => MUSCLE_NAMES[m] || m).join(', ');
+  document.getElementById('nums').innerHTML =
+    '<div class="num"><b>' + String(a).replace('.', ',') + ' · ' + String(b).replace('.', ',') + ' с</b><span>' + t.phase[0] + ' · ' + t.phase[1] + '</span></div>' +
+    '<div class="num"><b>' + (h1 >= 0.8 ? String(h1).replace('.', ',') + ' с' : 'без паузы') + '</b><span>' + (t.pauseLabel || 'задержка в точке') + '</span></div>' +
+    '<div class="num" style="grid-column:1/-1"><b>' + mn(t.prim) + '</b><span>работают главные</span></div>' +
+    (t.sec && t.sec.length ? '<div class="num" style="grid-column:1/-1"><b>' + mn(t.sec) + '</b><span>помогают</span></div>' : '');
+  document.getElementById('legend').innerHTML = '<span><i style="background:#d63a3f"></i>главные</span><span><i style="background:#f0a35a"></i>помогают</span><span><i style="background:#ff7a2f"></i>траектория ' + (trackLeg ? 'стопы' : 'кисти') + '</span>';
+  document.getElementById('src').innerHTML = bench
+    ? BENCH_TEXT.sources.map(([n, u]) => '<div><a href="' + u + '" target="_blank" rel="noopener">' + n + '</a></div>').join('')
+    : 'Подсказки и ошибки — из программы фитлога. Источники стандартной техники: <a href="https://exrx.net/Lists/Directory" target="_blank" rel="noopener">ExRx.net</a>, <a href="https://www.strongerbyscience.com/" target="_blank" rel="noopener">Stronger by Science</a>.';
+}
+
+function plateFade() {
+  const d = V().subVectors(camera.position, controls.target).normalize(), k = Math.abs(d.z), op = k > 0.7 ? 1 - Math.min(1, (k - 0.7) / 0.25) * 0.82 : 1;
+  for (const m of [M.plate, M.dark]) { m.opacity = op; m.depthWrite = op > 0.99; }
+}
+const phaseEl = document.getElementById('phase'), repEl = document.getElementById('rep'), cueEl = document.getElementById('cue');
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  if (!paused) elapsed += dt * speed;
+  const t = TECH[cur], [ab, hb, ba, ha] = t.tempo, total = ab + hb + ba + ha, c = elapsed % total, rep = Math.floor(elapsed / total) + 1;
+  let u, ph;
+  if (c < ab) { u = ease(c / ab); ph = 0; } else if (c < ab + hb) { u = 1; ph = 1; } else if (c < ab + hb + ba) { u = 1 - ease((c - ab - hb) / ba); ph = 2; } else { u = 0; ph = 3; }
+  const conc = ecc0 ? ph >= 2 : ph < 2, effort = conc ? 1 : 0.45;
+  frame(cur, u, ph === 1 || ph === 3 ? 0.55 : effort);
+  pathDot.position.copy(trackLeg ? RIG.J.A.L : RIG.J.W.L); pathDot.position.z += trackLeg ? 0.12 : 0.08;
+  if (ph !== lastPh) {
+    lastPh = ph;
+    const lbl = ph === 0 ? t.phase[0] + ' · ' + ab + ' с' : ph === 2 ? t.phase[1] + ' · ' + ba + ' с' : ph === 1 && hb >= 0.8 ? (t.pauseLabel || 'задержка') : (ph === 1 ? t.phase[0] : t.phase[1]);
+    phaseEl.lastChild.textContent = lbl.replace('.', ',');
+    cueEl.textContent = t.cues[ph % t.cues.length];
+  }
+  if (rep !== lastRep) { lastRep = rep; repEl.textContent = 'повтор ' + rep; }
+  if (fly) { fly.t = Math.min(1, fly.t + dt / 0.9); const k = ease(fly.t); camera.position.lerpVectors(fly.from, fly.to, k); controls.target.lerpVectors(fly.fromT, fly.toT, k); if (fly.t >= 1) fly = null; }
+  controls.update(); plateFade();
+  renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+
+// ---------- превью карточек: по одному упражнению за раз, своим маленьким рендером ----------
+const thumbR = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+thumbR.setSize(320, 200); thumbR.shadowMap.enabled = true; thumbR.outputColorSpace = THREE.SRGBColorSpace; thumbR.toneMapping = THREE.ACESFilmicToneMapping;
+thumbR.setClearColor(0xeef0f3, 1);
+const thumbCam = new THREE.PerspectiveCamera(32, 1.6, 0.05, 40);
+function makeThumbs(list) {
+  if (!list.length) { activate(cur); highlight(TECH[cur].prim, TECH[cur].sec); return; }
+  const id = list.shift(), t = TECH[id], c = EX3D[id].view();
+  activate(id); highlight(t.prim, t.sec); frame(id, 0.55, 0.8);
+  thumbCam.position.copy(camFor('photo', c, EX3D[id])); thumbCam.lookAt(c);
+  for (const m of [M.plate, M.dark]) { m.opacity = 1; m.depthWrite = true; }
+  pathLine.visible = pathDot.visible = false;
+  thumbR.render(scene, thumbCam);
+  pathLine.visible = pathDot.visible = pathBtn.classList.contains('on');
+  const img = document.querySelector('[data-thumb="' + id + '"]'); if (img) img.src = thumbR.domElement.toDataURL('image/jpeg', 0.82);
+  activate(cur); highlight(TECH[cur].prim, TECH[cur].sec);
+  setTimeout(() => makeThumbs(list), 30);
+}
+
+// ---------- управление ----------
+const playBtn = document.getElementById('play');
+playBtn.onclick = () => { paused = !paused; playBtn.textContent = paused ? 'Играть' : 'Пауза'; playBtn.classList.toggle('on', !paused); };
+document.querySelectorAll('[data-speed]').forEach(b => b.onclick = () => { speed = +b.dataset.speed; document.querySelectorAll('[data-speed]').forEach(x => x.classList.toggle('on', x === b)); });
+document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { setView(b.dataset.view); document.querySelectorAll('[data-view]').forEach(x => x.classList.toggle('on', x === b)); });
+const pathBtn = document.getElementById('pathBtn');
+pathBtn.onclick = () => { const on = !pathBtn.classList.contains('on'); pathBtn.classList.toggle('on', on); pathLine.visible = pathDot.visible = on; };
+window.addEventListener('hashchange', () => { open(location.hash.slice(1)); document.getElementById('exTitle').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+
+open(location.hash.slice(1) || 'bench');
+requestAnimationFrame(loop);
+setTimeout(() => makeThumbs(IDS.slice()), 400);
+window.__g = { open, frame, RIG, setView, get cur() { return cur; }, set paused(v) { paused = v; }, set elapsed(v) { elapsed = v; }, render: () => { controls.update(); plateFade(); renderer.render(scene, camera); } };
+</script>
+<script>
+setTimeout(() => { if (!document.querySelector('#scene canvas')) document.getElementById('scene').insertAdjacentHTML('beforeend', '<div class="err-box">3D не загрузился: нужен интернет для библиотеки three.js и поддержка WebGL.' + (location.protocol === 'file:' ? ' И открой страницу через сервер, а не двойным кликом по файлу.' : '') + '</div>'); }, 4000);
+</script>
+</body>
+</html>
