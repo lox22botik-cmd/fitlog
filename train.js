@@ -136,17 +136,21 @@ function fireTimer() {
   beep();
   if (document.hidden) notify('Отдых окончен', S.timer.label);
 }
+// Таймер тикает 4 раза в секунду — трогаем DOM только когда что-то реально поменялось,
+// иначе каждое касание body пересчитывает стили всей страницы и прокрутка дёргается
+function setCls(el, cls, on) { if (el.classList.contains(cls) !== on) el.classList.toggle(cls, on); }
+function setText(el, s) { if (el.textContent !== s) el.textContent = s; }
 function tick() {
   const t = S.timer, el = $('#timer');
-  if (!t) { el.classList.add('hidden'); document.body.classList.remove('has-timer'); return; }
+  if (!t) { setCls(el, 'hidden', true); setCls(document.body, 'has-timer', false); return; }
   const now = Date.now(), left = Math.ceil((t.end - now) / 1000);
   if (left <= 0 && !t.fired) fireTimer();
   if (now > t.max + 300000) { S.timer = null; save(); return tick(); }
-  el.classList.remove('hidden'); document.body.classList.add('has-timer');
-  el.classList.toggle('over', left <= 0);
-  $('#timerTime').textContent = left > 0 ? mmss(left) : '+' + mmss(-left);
-  $('#timerLabel').textContent = left > 0 ? 'Отдых · ' + t.label
-    : now < t.max ? 'Можно идти · отдых до ' + mmss(Math.ceil((t.max - now) / 1000)) : 'Пора! Следующий подход';
+  setCls(el, 'hidden', false); setCls(document.body, 'has-timer', true);
+  setCls(el, 'over', left <= 0);
+  setText($('#timerTime'), left > 0 ? mmss(left) : '+' + mmss(-left));
+  setText($('#timerLabel'), left > 0 ? 'Отдых · ' + t.label
+    : now < t.max ? 'Можно идти · отдых до ' + mmss(Math.ceil((t.max - now) / 1000)) : 'Пора! Следующий подход');
 }
 setInterval(tick, 250);
 $('#timerPlus').onclick = () => { if (S.timer) { S.timer.end += 30000; S.timer.max = Math.max(S.timer.max, S.timer.end); S.timer.fired = S.timer.end <= Date.now(); save(); tick(); } };

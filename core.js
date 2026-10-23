@@ -94,7 +94,7 @@ function sheet(title, opts, html, search) {
   const o = document.createElement('div'); o.className = 'sheet-bg';
   o.innerHTML = '<div class="sheet"><div class="sheet-grip"></div><div class="sheet-t">' + esc(title) + '</div>' + (html || '') +
     (search ? '<input class="txt sheet-search" type="search" placeholder="Поиск…">' : '') +
-    opts.map((x, k) => '<button class="sheet-o ' + (x.cls || '') + '" data-k="' + k + '">' + (x.html || esc(x.label)) + '</button>').join('') +
+    opts.map((x, k) => '<button class="sheet-o ' + (x.cls || '') + '" data-k="' + k + '" style="--i:' + Math.min(k, 10) + '">' + (x.html || esc(x.label)) + '</button>').join('') +
     '<button class="sheet-o cancel" data-k="-1">Закрыть</button></div>';
   o.addEventListener('click', ev => {
     const b = ev.target.closest('[data-k]');
@@ -216,6 +216,13 @@ function barChart(id, bars, opt = {}) {
     lines: [{ color: b.color || opt.color || 'var(--s1)', name: opt.name || '', val: b.y == null ? 'нет данных' : (opt.fmt ? opt.fmt(b.y) : fmtW(r1(b.y))) + (unit ? ' ' + unit : '') }] })) };
   return chartWrap(id, g, W, H);
 }
+// Подсказка на графике: не чаще одного раза за кадр, иначе замеры layout на каждое движение пальца
+let hoverEv = null;
+function chartHoverRaf(ev) {
+  if (!ev.target.closest || !ev.target.closest('.chart')) return;
+  if (!hoverEv) requestAnimationFrame(() => { const e = hoverEv; hoverEv = null; chartHover(e); });
+  hoverEv = ev;
+}
 function chartHover(ev) {
   const el = ev.target.closest && ev.target.closest('.chart'); if (!el) return;
   const c = charts[el.dataset.chart]; if (!c || !c.pts.length) return;
@@ -229,8 +236,8 @@ function chartHover(ev) {
   const left = best.cx / c.W * rect.width;
   tip.style.left = Math.max(0, left > rect.width / 2 ? left - tip.offsetWidth - 10 : left + 10) + 'px';
 }
-document.addEventListener('pointermove', chartHover);
-document.addEventListener('pointerdown', chartHover);
+document.addEventListener('pointermove', chartHoverRaf, { passive: true });
+document.addEventListener('pointerdown', chartHoverRaf, { passive: true });
 
 // Полоска «сколько из нормы»
 function meter(label, val, target, unit, cls) {
