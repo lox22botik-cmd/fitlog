@@ -9,6 +9,7 @@ VIEWS.settings = function (v) {
     '<input type="checkbox" class="sw" data-set="' + k + '"' + (st[k] ? ' checked' : '') + '></label>';
   const perm = 'Notification' in window ? Notification.permission : 'нет';
   v.innerHTML = '<div class="grid2">' + link('#program', 'Программа', 'упражнения, подходы') + link('#targets', 'Нормы', 'ккал, БЖУ, вода, сон') + link('#foods', 'Продукты', 'база еды') + link('#body', 'Тело', 'вес и замеры') + '</div>' +
+    link('gallery.html', '🏋️ Техника упражнений', '3D-модель, все упражнения программы') +
     tg('reminder', 'Напоминание о добавках в 17:00', 'карточка на главной + уведомление') +
     '<section class="card"><div class="exname">Мои добавки</div><div class="muted">Отмечаются каждый день на главной.</div><div class="chips">' +
     st.supps.map((n, i) => '<button class="chip" data-act="suppDel" data-i="' + i + '">' + esc(n) + ' ✕</button>').join('') + '<button class="chip on" data-act="suppAdd">+ добавить</button></div></section>' +

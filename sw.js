@@ -1,6 +1,6 @@
 // Офлайн-кэш. При изменении файлов приложения — поднять версию.
-const CACHE = 'fitlog-v7';
-const FILES = ['./', 'index.html', 'style.css', 'data.js', 'core.js', 'train.js', 'food.js', 'day.js', 'stats.js', 'settings.js', 'xlsx.js', 'tech.html', 'tech.js', 'tech-data.js', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'icon-512-maskable.png'];
+const CACHE = 'fitlog-v8';
+const FILES = ['./', 'index.html', 'style.css', 'data.js', 'core.js', 'train.js', 'food.js', 'day.js', 'stats.js', 'settings.js', 'xlsx.js', 'tech.html', 'tech.js', 'tech-data.js', 'gallery.html', 'gallery3d.js', 'vendor/three/three.module.js', 'vendor/three/OrbitControls.js', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'icon-512-maskable.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

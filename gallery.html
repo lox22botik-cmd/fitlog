@@ -21,6 +21,7 @@
   main { max-width: 1040px; margin: 0 auto; padding: 18px 16px 40px; }
   h1 { font-size: 28px; margin: 4px 0 2px; letter-spacing: -.02em; }
   .muted { color: var(--muted); }
+  .back { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px 0 10px; margin: 0 0 6px -4px; border-radius: 999px; background: rgba(255,255,255,.05); border: 1px solid var(--line2); color: var(--text); font-weight: 700; font-size: 15px; text-decoration: none; }
   .sec-t { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin: 22px 2px 10px; }
   .sec-t::before { content: ''; display: inline-block; width: 3px; height: 11px; border-radius: 2px; background: var(--grad); margin-right: 8px; vertical-align: -1px; }
   .card { background: var(--surface); border: 1px solid var(--line); border-top-color: rgba(255,255,255,.11); border-radius: 20px; padding: 16px; }
@@ -75,6 +76,7 @@
 </head>
 <body>
 <main>
+  <a class="back" id="back" href="index.html">‹ Дневник</a>
   <h1>Техника упражнений</h1>
   <div class="muted">3D-модель двигается по технике. Красным — главные работающие мышцы, оранжевым — помогающие. Модель можно крутить пальцем.</div>
 
@@ -124,8 +126,8 @@
 <script src="tech-data.js"></script>
 <script type="importmap">
 { "imports": {
-  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  "three": "./vendor/three/three.module.js",
+  "three/addons/controls/OrbitControls.js": "./vendor/three/OrbitControls.js"
 } }
 </script>
 <script type="module">
@@ -277,6 +279,8 @@ document.querySelectorAll('[data-speed]').forEach(b => b.onclick = () => { speed
 document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { setView(b.dataset.view); document.querySelectorAll('[data-view]').forEach(x => x.classList.toggle('on', x === b)); });
 const pathBtn = document.getElementById('pathBtn');
 pathBtn.onclick = () => { const on = !pathBtn.classList.contains('on'); pathBtn.classList.toggle('on', on); pathLine.visible = pathDot.visible = on; };
+// «‹ Дневник»: если пришли из приложения — просто назад, иначе на главную
+document.getElementById('back').onclick = e => { if (document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1) { e.preventDefault(); history.back(); } };
 window.addEventListener('hashchange', () => { open(location.hash.slice(1)); document.getElementById('exTitle').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 
 open(location.hash.slice(1) || 'bench');
@@ -285,7 +289,7 @@ setTimeout(() => makeThumbs(IDS.slice()), 400);
 window.__g = { open, frame, RIG, setView, get cur() { return cur; }, set paused(v) { paused = v; }, set elapsed(v) { elapsed = v; }, render: () => { controls.update(); plateFade(); renderer.render(scene, camera); } };
 </script>
 <script>
-setTimeout(() => { if (!document.querySelector('#scene canvas')) document.getElementById('scene').insertAdjacentHTML('beforeend', '<div class="err-box">3D не загрузился: нужен интернет для библиотеки three.js и поддержка WebGL.' + (location.protocol === 'file:' ? ' И открой страницу через сервер, а не двойным кликом по файлу.' : '') + '</div>'); }, 4000);
+setTimeout(() => { if (!document.querySelector('#scene canvas')) document.getElementById('scene').insertAdjacentHTML('beforeend', '<div class="err-box">3D не загрузился: браузер не поддерживает WebGL или файлы ещё не скачались — открой страницу один раз с интернетом.' + (location.protocol === 'file:' ? ' И открой страницу через сервер, а не двойным кликом по файлу.' : '') + '</div>'); }, 4000);
 </script>
 </body>
 </html>
